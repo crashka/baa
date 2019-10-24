@@ -5,9 +5,8 @@
 #include <cstdio>
 #include <iomanip>
 
-#ifndef USE_ODB
-#  include "finances.hpp"
-#else
+#include "finances.hpp"
+#ifdef USE_ODB
 #  include <odb/database.hxx>
 #  include <odb/transaction.hxx>
 #  include <odb/pgsql/database.hxx>

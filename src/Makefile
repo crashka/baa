@@ -5,7 +5,7 @@ RM=rm -f
 TOUCH=touch
 CPPFLAGS=-I/home/crash/.local/include $(EXTRA_CPPFLAGS)
 CXXFLAGS=-g -std=c++1z
-ODBFLAGS=-I/home/crash/.local/include -d pgsql --hxx-suffix .hpp --cxx-suffix .cpp --ixx-suffix .ipp --sql-name-case lower --generate-query
+ODBFLAGS=$(CPPFLAGS) -d pgsql --hxx-suffix .hpp --cxx-suffix .cpp --ixx-suffix .ipp --sql-name-case lower --generate-query
 LDFLAGS=-g -L/home/crash/.local/lib
 LDLIBS=-lodb -lodb-pgsql
 
@@ -13,6 +13,7 @@ PSQL=psql
 DBNAME=crash
 DROPTBL_SQL="drop table finances"
 CLEARTBL_SQL="delete from finances"
+QUERYTBL_SQL="select * from finances"
 LOADTBL_SQL="copy finances (digits, guaincome, guaexpend, rembudget, monthbudget, weekcounter, percentsave, percentwarning, name) from stdin"
 
 SRCS=main.cpp finances.cpp finances-odb.cpp
@@ -54,6 +55,9 @@ loaddb: .createdb .loaddb
 	# and last name in the final (`name`) field for each record
 	sed 's/ \+/|/g9;s/ \+/\t/g;s/|/ /' $< | $(PSQL) -c $(LOADTBL_SQL) $(DBNAME)
 	$(TOUCH) $@
+
+querydb:
+	$(PSQL) -c $(QUERYTBL_SQL) $(DBNAME)
 
 cleandb:
 	$(PSQL) -c $(DROPTBL_SQL) $(DBNAME)
