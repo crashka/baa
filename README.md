@@ -24,7 +24,7 @@ The changes in this fork (which should generally map to the order of commits):
 * Rename source code directory to `src` and add `Makefile` for build support
 * Move `Finances` class declaration and implementation into separate `.cpp` and `.hpp` files,
   respectively, to support the ODB intergration (as well as for general neatness)
-* Add `Finances *userInfo` as a pointer to `personalInfo[userIndex]` for prorcessing in `main.cpp`,
+* Add `Finances *userInfo` as a pointer to `personalInfo[userIndex]` for processing in `main.cpp`,
   in order to support ODB integration (wherein `personalInfo` is not used)
 * Add ODB-based persistence (as a replacement for the `readFile.txt` mechanism), switched on the
   `#define USE_ODB` preprocessor flag
