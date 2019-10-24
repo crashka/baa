@@ -2,9 +2,11 @@
 #define __FINANCES_HPP__
 
 #include <string>
+#include <odb/core.hxx>
 
 class Finances{
 private:
+    friend class odb::access;
 
     // the identifiers of the user
     int digits;
@@ -68,5 +70,8 @@ public:
     //user interface and experience functions
     void menu( int);
 };
+
+#pragma db object(Finances)
+#pragma db member(Finances::digits) id
 
 #endif // __FINANCES_HPP__

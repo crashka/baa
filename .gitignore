@@ -1,3 +1,8 @@
 .depend
+.createdb
+.loaddb
+*-odb.cpp
+*-odb.hpp
+*-odb.ipp
 *.o
 baa-cli

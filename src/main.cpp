@@ -5,20 +5,34 @@
 #include <cstdio>
 #include <iomanip>
 
-#include "finances.hpp"
+#ifndef USE_ODB
+#  include "finances.hpp"
+#else
+#  include <odb/database.hxx>
+#  include <odb/transaction.hxx>
+#  include <odb/pgsql/database.hxx>
+#  include "finances-odb.hpp"
+#endif
 
 using namespace std;
+#ifdef USE_ODB
+using namespace odb::core;
+#endif
 
-int main(){
+// Note that command line arguments are passed through to the `odb::database` constructor
+// for the USE_ODB case (otherwise ignored)
+int main(int argc, char* argv[]){
 
   // initializing all variables that will be included in the file
   int digits, userIncome, userExpend, userRemBudget, userMonthBudget, langCode, weekCounter, moneySpent, percentSave, percentWarning;
   string name;
 
   // Pointer to the Finances record for the current user; this points to the user's element
-  // within personalInfo in the file-based database case
+  // within personalInfo in the file-based database case, but represents dynamic (i.e. heap)
+  // storage in the USE_ODB case
   Finances *userInfo;
 
+#ifndef USE_ODB
   ifstream database( "readFile.txt");
 
   vector<Finances> personalInfo;
@@ -58,6 +72,9 @@ int main(){
 
     database >> digits;
   }
+#else
+  unique_ptr<database> db(new odb::pgsql::database(argc, argv));
+#endif
 
 
   cout << "Hi! Welcome to B.A.A., the Budgetary Analytical Advisory hotline. We are here to help with your budgetary needs." << endl;
@@ -70,6 +87,7 @@ int main(){
 
   cin >> digits;
 
+#ifndef USE_ODB
   // using a bool and for loop, we try to find whether or not the user already has an account
   bool found = false;
   int userIndex;
@@ -83,6 +101,18 @@ int main(){
     }
 
   }
+#else
+  try {
+    transaction t(db->begin());
+    userInfo = db->find<Finances>(digits);
+    t.commit();
+  }
+  catch (const odb::exception& e) {
+    cerr << e.what() << endl;
+    return 1;
+  }
+  bool found = (userInfo != NULL);
+#endif
 
   // is when you dont have an account, allows user to set up account
   if( !found){
@@ -119,11 +149,26 @@ int main(){
     newFinances.setRemBudget(newFinances.getMonthBudget());
     newFinances.setWeekCounter(4);
 
+#ifndef USE_ODB
     // the class is placed into the function
     personalInfo.push_back( newFinances);
 
     userIndex = personalInfo.size() - 1;
     userInfo = &personalInfo[userIndex];
+#else
+    try {
+      int new_id;
+      transaction t(db->begin());
+      new_id = db->persist(newFinances);
+      t.commit();
+    }
+    catch (const odb::exception& e) {
+      cerr << e.what() << endl;
+      return 1;
+    }
+    // create a copy on the heap for updating below
+    userInfo = new Finances(newFinances);
+#endif
   }
   else{
 
@@ -189,7 +234,7 @@ int main(){
       userInfo->calcRemBudget(moneySpent);
   }
 
-
+#ifndef USE_ODB
   // Open the file with the argument to write onto it
   fopen("writeFile.txt", "w");
   // Store the file in a variable name for conventional use
@@ -218,6 +263,22 @@ int main(){
   rename(readFile, newWrite);
   char newRead[] = "readFile.txt";
   rename(placeholder, newRead);
+#else
+  try {
+    transaction t(db->begin());
+    db->update(*userInfo);
+    t.commit();
+  }
+  catch (const odb::exception& e) {
+    cerr << e.what() << endl;
+    return 1;
+  }
+
+  userInfo->menu(langCode);
+  // this points to a heap object in both the new and existing user cases (different
+  // construction methods)
+  delete userInfo;
+#endif
 
   // Make main happy
   return 0;
