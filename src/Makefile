@@ -17,7 +17,7 @@ LOADTBL_SQL="copy finances (digits, guaincome, guaexpend, rembudget, monthbudget
 
 SRCS=main.cpp finances.cpp finances-odb.cpp
 OBJS=$(subst .cpp,.o,$(SRCS))
-GENFILES=finances-odb.cpp finances-odb.hpp finances-odb.ipp finances.sql
+GENFILES=finances-odb.cpp finances-odb.hpp finances-odb.ipp
 DBTARGETS=.createdb .loaddb
 
 all: baa-cli
