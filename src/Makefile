@@ -13,7 +13,7 @@ PSQL=psql
 DBNAME=crash
 DROPTBL_SQL="drop table finances"
 CLEARTBL_SQL="delete from finances"
-LOADTBL_SQL="copy finances ( digits, guaincome, guaexpend, rembudget, monthbudget, weekcounter, percentsave, percentwarning, name) from stdin"
+LOADTBL_SQL="copy finances (digits, guaincome, guaexpend, rembudget, monthbudget, weekcounter, percentsave, percentwarning, name) from stdin"
 
 SRCS=main.cpp finances.cpp finances-odb.cpp
 OBJS=$(subst .cpp,.o,$(SRCS))
@@ -49,6 +49,9 @@ loaddb: .createdb .loaddb
 .loaddb: readFile.txt
 	$(RM) $@
 	$(PSQL) -c $(CLEARTBL_SQL) $(DBNAME)
+	# this sed script converts the datafile from space-delimited to tab-delimited (as
+	# the COPY command expects), but makes sure to preserve the space separating first
+	# and last name in the final (`name`) field for each record
 	sed 's/ \+/|/g9;s/ \+/\t/g;s/|/ /' $< | $(PSQL) -c $(LOADTBL_SQL) $(DBNAME)
 	$(TOUCH) $@
 
