@@ -6,7 +6,7 @@ CXXFLAGS=-g -std=c++1z
 LDFLAGS=-g
 LDLIBS=
 
-SRCS=main.cpp
+SRCS=main.cpp finances.cpp
 OBJS=$(subst .cpp,.o,$(SRCS))
 
 all: baa-cli
